@@ -53,8 +53,8 @@ class _openpyxl(object):
         
         ''' firstly, select arbitary sheet cells. After that, we shrink cell range '''
         col = openpyxl.utils.cell.column_index_from_string(col) if type(col) == str else col
-        endrow = self.sheet.max_row if offsetrow == 0 else row + offsetrow - 1
-        endcol = self.sheet.max_column if offsetcol == 0 else col + offsetcol - 1
+        endrow = self.sheet.max_row if (offsetrow == 0) or (row + offsetrow - 1 >= self.sheet.max_row) else row + offsetrow - 1 # offset 1 means itself, so need to minus 1
+        endcol = self.sheet.max_column if (offsetcol == 0) or (col + offsetcol - 1 >= self.sheet.max_column)  else col + offsetcol - 1 # offset 1 means itself, so need to minus 1
         startcell = openpyxl.utils.cell.get_column_letter(col) + str(row)        
         endcell = openpyxl.utils.cell.get_column_letter(endcol) + str(endrow)        
         cells = self.sheet[startcell + ':' + endcell]
@@ -84,6 +84,12 @@ class _openpyxl(object):
         print('autoselect : Select Range %s' % (startcell + ':' + endcell.coordinate))
         return cells
 
+    def pprint(self, cells):
+        for row in cells:
+            for v in row:
+                print(v.value, end='\t')
+            print()
+            
 def mytest1():        
     c = _openpyxl('weather.xlsx', '시트1')
     a = c.autoselect(18,'d',1,10)
@@ -96,7 +102,15 @@ def mytest2():
     cells = c.autoselect(search[0].row, search[0].column, 100, 100)
     print(cells)
 
-mytest2()    
+def mytest3():
+    ''' auto select example '''
+    c = _openpyxl('example.xlsx', 'Sheet1')
+    search = c.search('PARAM', 'A:P',exactly=False)
+    print(search)
+    cells = c.autoselect(search[0].row, search[0].column, 100, 100)
+    c.pprint(cells)    
+
+mytest3()    
 #a = c.search('SQ', a)
 #print(a)
 #o = c.search('구름많음', 'A2:M10000', exactly = False)
